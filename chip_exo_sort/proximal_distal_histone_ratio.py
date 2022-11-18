@@ -20,8 +20,8 @@ if __name__ == '__main__':
     parser.add_argument('--out', '-o', default='proximal_distal_histone_ratio_sort.tsv', dest='out')
     args = parser.parse_args()
 
-    sense_cdt = pd.read_csv(args.sense_cdt, sep='\t', index_col=(0, 1))
-    anti_cdt = pd.read_csv(args.anti_cdt, sep='\t', index_col=(0, 1))
+    sense_cdts = [pd.read_csv(sense_cdt, sep='\t', index_col=(0, 1)) for sense_cdt in args.sense_cdt]
+    anti_cdts = [pd.read_csv(anti_cdt, sep='\t', index_col=(0, 1)) for anti_cdt in args.anti_cdt]
     proximal_idx = slice(*args.proximal_idx)
     distal_idx = slice(*args.distal_idx)
-    get_sort(sense_cdt, anti_cdt, proximal_idx, distal_idx).to_csv(args.out, sep='\t', header=None)
+    get_sort(sense_cdts, anti_cdts, proximal_idx, distal_idx).to_csv(args.out, sep='\t', header=None)
