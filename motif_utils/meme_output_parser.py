@@ -2,6 +2,15 @@ import pandas as pd
 import re
 
 def parse_meme_output(meme_fn):
+    """
+    Parse MEME output file
+    Args:
+        meme_fn: Path to MEME output file
+
+    Returns:
+        List of DataFrames, one for each motif
+    """
+
     wpattern = re.compile('MOTIF \w+ MEME-\d+\s+width =\s+(\d+)')
     hpattern = re.compile('Motif \w+ MEME-\d+ sites sorted by position p-value')
     datapattern = re.compile('(chr[\dM]+):(\d+)-(\d+)\(\.\)\s+([\+\-])\s+(\d+)\s+([\d\.\-e]+)\s+[\.\w]+\s+(\w+)')
