@@ -1,7 +1,7 @@
 #!/bin/bash
 
 APIKEY=$(cat $HOME/.tokens/pegr_token.txt)
-JSON=$(curl -X POST -H "Content-Type: application/json" -d "{\"id\": $1, \"userEmail\": \"jsc6015@psu.edu\"}" "https://thanos.vmhost.psu.edu/pegr/api/fetchSampleData?apiKey=$APIKEY" 2> /dev/null)
+JSON=$(curl -s -X POST -H "Content-Type: application/json" -d "{\"id\": $1, \"userEmail\": \"jsc6015@psu.edu\"}" "https://thanos.vmhost.psu.edu/pegr/api/fetchSampleData?apiKey=$APIKEY")
 if [[ $(echo $JSON | jq -r .message) != "Success!" ]]; then
   echo "Error: $(echo $JSON | jq .message)"
   exit 1
