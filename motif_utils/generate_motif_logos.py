@@ -5,7 +5,6 @@ import argparse
 
 class DNASymbol:
     path = None
-    mask = None
     color = None
     max_bits = 2
     DNA_alphabet = ()
@@ -15,23 +14,19 @@ class DNASymbol:
         return cls.DNA_alphabet[i]
 
 class DNA_A(DNASymbol):
-    path = 'M 0 100 L 33 0 L 66 0 L 100 100 L 75 100 L 66 75 L 33 75 L 25 100 Z'
-    mask = 'M 41 55 L 50 25 L 58 55 Z'
+    path = 'M 0 100 L 33 0 L 66 0 L 100 100 L 75 100 L 66 75 L 33 75 L 25 100 L 0 100 M 41 55 L 58 55 L 50 25 L 41 55'
     color = '#FF0000'
 
 class DNA_C(DNASymbol):
     path = 'M 100 28 C 100 -13 0 -13 0 50 C 0 113 100 113 100 72 L 75 72 C 75 90 30 90 30 50 C 30 10 75 10 75 28 Z'
-    mask = None
     color = '#0000FF'
 
 class DNA_G(DNASymbol):
     path = 'M 100 28 C 100 -13 0 -13 0 50 C 0 113 100 113 100 72 L 100 48 L 55 48 L 55 72 L 75 72 C 75 90 30 90 30 50 C 30 10 75 5 75 28 Z'
-    mask = None
     color = '#FFA500'
 
 class DNA_T(DNASymbol):
     path = 'M 0 0 L 0 20 L 35 20 L 35 100 L 65 100 L 65 20 L 100 20 L 100 0 Z'
-    mask = None
     color = '#228B22'
 
 DNASymbol.DNA_alphabet = (DNA_A, DNA_C, DNA_G, DNA_T)
@@ -62,23 +57,9 @@ def pwm2logo(pwm, out_fn, n=1., symbol=DNASymbol, glyph_width=100, stack_height=
             glyph = stack.appendChild(document.createElement('g'))
             y_offset += heights[j]
             glyph.setAttribute('transform', 'matrix({} 0 0 {} 0 {})'.format(glyph_width / 100., heights[j] / 100., stack_height - y_offset))
-            if symbol.mask:
-                mask = glyph.appendChild(document.createElement('mask'))
-                mask.setAttribute('id', 'mask-{}-{}'.format(i, j))
-                mask.setAttribute('fill', 'white')
-                background = mask.appendChild(document.createElement('rect'))
-                background.setAttribute('x', '0')
-                background.setAttribute('y', '0')
-                background.setAttribute('width', '100')
-                background.setAttribute('height', '100')
-                mask_path = mask.appendChild(document.createElement('path'))
-                mask_path.setAttribute('d', symbol.mask)
-                mask_path.setAttribute('fill', 'black')
             path = glyph.appendChild(document.createElement('path'))
             path.setAttribute('d', symbol.path)
             path.setAttribute('fill', symbol.color)
-            if symbol.mask:
-                path.setAttribute('mask', 'url(#mask-{}-{})'.format(i, j))
 
     with open(out_fn, 'w') as f:
         svg.writexml(f, addindent='    ', newl='\n')
