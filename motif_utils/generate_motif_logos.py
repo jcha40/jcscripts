@@ -31,7 +31,7 @@ class DNA_T(DNASymbol):
 
 DNASymbol.DNA_alphabet = (DNA_A, DNA_C, DNA_G, DNA_T)
 
-def pwm2logo(pwm, out_fn, n=1., symbol=DNASymbol, glyph_width=100, stack_height=200):
+def pwm2logo(pwm, out_fn, symbol=DNASymbol, glyph_width=100, stack_height=200):
     width = len(pwm)
 
     document = dom.Document()
@@ -41,7 +41,17 @@ def pwm2logo(pwm, out_fn, n=1., symbol=DNASymbol, glyph_width=100, stack_height=
     svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
     svg.setAttribute('viewBox', '0 0 {} {}'.format(width * glyph_width, stack_height))
 
+    defs = svg.appendChild(document.createElement('defs'))
+    for base in symbol.DNA_alphabet:
+        path = defs.appendChild(document.createElement('path'))
+        path.setAttribute('id', base.__name__)
+        path.setAttribute('d', base.path)
+        path.setAttribute('fill', base.color)
+
     for i, pwv in enumerate(pwm):
+        n = np.sum(pwv)
+        if n == 0:
+            continue
         vec = pwv / n
         vec[vec > 0] *= np.log2(vec[vec > 0])
         bits = sum(vec, symbol.max_bits)
@@ -54,12 +64,10 @@ def pwm2logo(pwm, out_fn, n=1., symbol=DNASymbol, glyph_width=100, stack_height=
         y_offset = 0
         for j in idx:
             symbol = symbol.get_symbol(j)
-            glyph = stack.appendChild(document.createElement('g'))
             y_offset += heights[j]
+            glyph = stack.appendChild(document.createElement('use'))
+            glyph.setAttribute('href', '#{}'.format(symbol.__name__))
             glyph.setAttribute('transform', 'matrix({} 0 0 {} 0 {})'.format(glyph_width / 100., heights[j] / 100., stack_height - y_offset))
-            path = glyph.appendChild(document.createElement('path'))
-            path.setAttribute('d', symbol.path)
-            path.setAttribute('fill', symbol.color)
 
     with open(out_fn, 'w') as f:
         svg.writexml(f, addindent='    ', newl='\n')
@@ -70,6 +78,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('meme_fn', help='MEME file')
     parser.add_argument('out_dir', help='output directory')
+    parser.add_argument('--revcomp', '-rc', action='store_true', help='output reverse complement')
     args = parser.parse_args()
 
     with open(args.meme_fn) as f:
@@ -84,5 +93,5 @@ if __name__ == '__main__':
                     if not line.strip():
                         break
                     pwm.append(list(map(float, line.split())))
-                pwm = np.array(pwm)
+                pwm = np.flip(np.array(pwm)) if args.revcomp else np.array(pwm)
                 pwm2logo(pwm, '{}/{}.svg'.format(args.out_dir, motif))
