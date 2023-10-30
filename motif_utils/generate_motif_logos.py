@@ -63,10 +63,10 @@ def pwm2logo(pwm, out_fn, symbol=DNASymbol, glyph_width=100, stack_height=200):
 
         y_offset = 0
         for j in idx:
-            symbol = symbol.get_symbol(j)
+            base = symbol.get_symbol(j)
             y_offset += heights[j]
             glyph = stack.appendChild(document.createElement('use'))
-            glyph.setAttribute('href', '#{}'.format(symbol.__name__))
+            glyph.setAttribute('href', '#{}'.format(base.__name__))
             glyph.setAttribute('transform', 'matrix({} 0 0 {} 0 {})'.format(glyph_width / 100., heights[j] / 100., stack_height - y_offset))
 
     with open(out_fn, 'w') as f:
