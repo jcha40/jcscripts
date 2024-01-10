@@ -1,6 +1,9 @@
 using SpecialFunctions
 
-function logbetai(x::Float64, a::Float64, b::Float64; n::Int64 = 100)::Float64
+function logbetai(x::Float64, a::Float64, b::Float64; n::Int64 = 20)::Float64
+    """
+    Compute the logarithm of the incomplete beta function using the continued fraction representation.
+    """
     frac, s = if n % 2 == 0
         1, n
     else
