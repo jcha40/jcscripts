@@ -1,18 +1,16 @@
 using SpecialFunctions
+using LogExpFunctions
 
 function logbetai(x::Float64, a::Float64, b::Float64; n::Int64 = 20)::Float64
     """
-    Compute the logarithm of the incomplete beta function using the continued fraction representation.
+    Compute the logarithm of the incomplete regularized beta function using the continued fraction representation.
     """
-    frac, s = if n % 2 == 0
-        1, n
-    else
-        k = div(n, 2)
-        1 - ((a + k) * (a + b + k) * x) / ((a + n - 1) * (a + n)), n - 1
+    if a < b
+        return logsubexp(0., logbetai(x, b, a))
     end
-    for i in s:-2:2
-        k = div(i, 2)
-        frac = 1 - (((a + k - 1) * (a + b + k - 1) * x) / ((a + i - 2) * (a + i - 1))) / (1 + ((k * (b - k) * x) / ((a + i - 1) * (a + i))) / frac)
+    frac = 1.
+    for k in n:-1:1
+        frac = 1 - (((a + k - 1) * (a + b + k - 1) * x) / ((a + k * 2 - 2) * (a + k * 2 - 1))) / (1 + ((k * (b - k) * x) / ((a + k * 2 - 1) * (a + k * 2))) / frac)
     end
     return a * log(x) + b * log(1 - x) - log(a) - logbeta(a, b) - log(frac)
 end
