@@ -63,11 +63,54 @@ def pwm2logo(pwm, out_fn, symbol=DNASymbol, glyph_width=100, stack_height=200):
 
         y_offset = 0
         for j in idx:
+            if heights[j] == 0:
+                continue
             base = symbol.get_symbol(j)
             y_offset += heights[j]
-            glyph = stack.appendChild(document.createElement('use'))
-            glyph.setAttribute('href', '#{}'.format(base.__name__))
+            glyph = stack.appendChild(document.createElement('path'))
+            glyph.setAttribute('d', base.path)
+            glyph.setAttribute('fill', base.color)
             glyph.setAttribute('transform', 'matrix({} 0 0 {} 0 {})'.format(glyph_width / 100., heights[j] / 100., stack_height - y_offset))
+
+    with open(out_fn, 'w') as f:
+        svg.writexml(f, addindent='    ', newl='\n')
+
+def alinged_pwms2logo_stack(aligned_pwms, out_fn, symbol=DNASymbol, glyph_width=100, stack_height=200):
+    height, width, _ = aligned_pwms.shape
+
+    document = dom.Document()
+    svg = document.appendChild(document.createElement('svg'))
+    svg.setAttribute('baseProfile', 'full')
+    svg.setAttribute('version', '1.1')
+    svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    svg.setAttribute('viewBox', '0 0 {} {}'.format(width * glyph_width, height * stack_height))
+
+    for y, pwm in enumerate(aligned_pwms):
+        row = svg.appendChild(document.createElement('g'))
+        row.setAttribute('transform', 'translate(0 {})'.format(y * stack_height))
+        for i, pwv in enumerate(pwm):
+            n = np.sum(pwv)
+            if n == 0:
+                continue
+            vec = pwv / n
+            vec[vec > 0] *= np.log2(vec[vec > 0])
+            bits = sum(vec, symbol.max_bits)
+            heights = pwv / n * bits / symbol.max_bits * stack_height
+            idx = np.argsort(pwv)
+    
+            stack = row.appendChild(document.createElement('g'))
+            stack.setAttribute('transform', 'translate({} 0)'.format(i * glyph_width))
+    
+            y_offset = 0
+            for j in idx:
+                if heights[j] == 0:
+                    continue
+                base = symbol.get_symbol(j)
+                y_offset += heights[j]
+                glyph = stack.appendChild(document.createElement('path'))
+                glyph.setAttribute('d', base.path)
+                glyph.setAttribute('fill', base.color)
+                glyph.setAttribute('transform', 'matrix({} 0 0 {} 0 {})'.format(glyph_width / 100., heights[j] / 100., stack_height - y_offset))
 
     with open(out_fn, 'w') as f:
         svg.writexml(f, addindent='    ', newl='\n')
