@@ -7,7 +7,7 @@ import argparse
 
 def pileup(scidx_fn: str, bed_fns: list, chrom_sizes: str, out: str, control: bool = False,
            ref_pattern: re.Pattern = re.compile(r'(.+)_(\d+)bp.bed'),
-           sample_pattern: re.Pattern = re.compile(r'\d+_(.+?)_i5006_BY4741_-_YPD_(.+?)_XO_FilteredBAM')):
+           sample_pattern: re.Pattern = re.compile(r'(\d+)_(.+?)_i5006_BY4741_-_YPD_(.+?)_XO_FilteredBAM')):
     """
     scidx_fn: str
         Path to the scidx file
@@ -43,8 +43,24 @@ def pileup(scidx_fn: str, bed_fns: list, chrom_sizes: str, out: str, control: bo
             chrom_dict[contig][pos, 0] = int(line[2])
             chrom_dict[contig][pos, 1] = int(line[3])
     
-    target, cond = sample_pattern.match(os.path.basename(scidx_fn)).groups()
+    sample_id, target, cond = sample_pattern.match(os.path.basename(scidx_fn)).groups()
     lock = SoftFileLock('{}.lock'.format(out))
+    with lock:
+        with h5py.File(out, 'a') as h5:
+            target_cond = '{}-{}'.format(target, cond)
+            if h5.get(target_cond) is None:
+                h5.create_group(target_cond)
+            target_group = h5[target_cond]
+            if target_group.get(sample_id) is None:
+                target_group.create_group(sample_id)
+            
+            if control:
+                if h5.get('controls') is None:
+                    h5.create_group('controls')
+                controls = set(h5['controls'][:])
+                controls.add(target_cond)
+                h5['controls'] = list(controls)
+
     for bed_fn in bed_fns:
         print(bed_fn)
         ref_name, length = ref_pattern.match(os.path.basename(bed_fn)).groups()
@@ -69,24 +85,12 @@ def pileup(scidx_fn: str, bed_fns: list, chrom_sizes: str, out: str, control: bo
         
         with lock:
             with h5py.File(out, 'a') as h5:
-                if h5.get(ref_name) is None:
-                    h5.create_group(ref_name)
-                ref_group = h5[ref_name]
-                target_cond = '{}-{}'.format(target, cond)
-                if ref_group.get(target_cond) is None:
-                    ref_group.create_group(target_cond)
-                cond_group = ref_group[target_cond]
-
-                if control:
-                    cond_group['forward'] = forward_comp
-                    cond_group['reverse'] = reverse_comp
-                else:
-                    rep = 1
-                    while cond_group.get(str(rep)) is not None:
-                        rep += 1
-                    rep_group = cond_group.create_group(str(rep))
-                    rep_group['forward'] = forward_comp
-                    rep_group['reverse'] = reverse_comp
+                rep_group = h5[target_cond][sample_id]
+                if rep_group.get(ref_name) is None:
+                    rep_group.create_group(ref_name)
+                ref_group = rep_group[ref_name]
+                ref_group['forward'] = forward_comp
+                ref_group['reverse'] = reverse_comp
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -97,8 +101,8 @@ if __name__ == '__main__':
     parser.add_argument('--control', '-c', action='store_true', help='output control pileup')
     parser.add_argument('--ref_pattern', '-rp', default='(.+)_(\d+)bp.bed',
                         help='regular expression pattern to extract the reference name row width from the bed file name')
-    parser.add_argument('--sample_pattern', '-sp', default='\d+_(.+?)_i5006_BY4741_-_YPD_(.+?)_XO_FilteredBAM',
-                        help='regular expression pattern to extract the target and condition from the scidx file name')
+    parser.add_argument('--sample_pattern', '-sp', default='(\d+)_(.+?)_i5006_BY4741_-_YPD_(.+?)_XO_FilteredBAM',
+                        help='regular expression pattern to extract the ID, target, and condition from the scidx file name')
     args = parser.parse_args()
 
     with open(args.bed_fns) as f:
