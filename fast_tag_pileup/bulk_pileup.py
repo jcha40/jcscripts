@@ -78,10 +78,10 @@ def pileup(scidx_fn: str, bed_fns: list, chrom_sizes: str, out: str, control: bo
                     continue
                 if line[5] == '-':
                     forward_comp += chrom_dict[contig][end - 1:start - 1:-1, 1]
-                    reverse_comp += chrom_dict[contig][end:start:-1, 0]
+                    reverse_comp += chrom_dict[contig][end - 1:start - 1:-1, 0]
                 else:
                     forward_comp += chrom_dict[contig][start:end, 0]
-                    reverse_comp += chrom_dict[contig][start - 1:end - 1, 1]
+                    reverse_comp += chrom_dict[contig][start:end, 1]
         
         with lock:
             with h5py.File(out, 'a') as h5:
