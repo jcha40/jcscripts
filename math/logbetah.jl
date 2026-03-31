@@ -1,6 +1,6 @@
 using SpecialFunctions
 
-function logbetah(a::Float64, b::Float64; n::Int64 = 20, loghalf::Float64 = log(.5))::Float64
+function logbetah(a::Real, b::Real; n::Int64 = 20, loghalf::Float64 = log(.5))::Float64
     """
     Compute the logarithm of the regularized half-beta function using the continued fraction representation.
     """
