@@ -39,14 +39,19 @@ def logbetainc(a, b, x, n=20):
     else:
         b_lt = b[mask]
         b_ge = b[~mask]
+    if isinstance(x, (int, float)):
+        x_lt = x_ge = x
+    else:
+        x_lt = x[mask]
+        x_ge = x[~mask]
     
     ans = empty_like(a + b + x, dtype=float64)
     if mask.any():
-        ans[mask] = log1p(-exp(logbetainc(b_lt, a_lt, 1. - x, n=n)))
+        ans[mask] = log1p(-exp(logbetainc(b_lt, a_lt, 1. - x_lt, n=n)))
     frac = 1.
     for k in range(n, 0, -1):
-        frac = 1 - (((a_ge + k - 1) * (a_ge + b_ge + k - 1) * x) / ((a_ge + k * 2 - 2) * (a_ge + k * 2 - 1))) / (1 + ((k * (b_ge - k) * x) / ((a_ge + k * 2 - 1) * (a_ge + k * 2))) / frac)
-    ans[~mask] = a_ge * log(x) + b_ge * log1p(-x) - log(a_ge) - betaln(a_ge, b_ge) - log(frac)
+        frac = 1 - (((a_ge + k - 1) * (a_ge + b_ge + k - 1) * x_ge) / ((a_ge + k * 2 - 2) * (a_ge + k * 2 - 1))) / (1 + ((k * (b_ge - k) * x_ge) / ((a_ge + k * 2 - 1) * (a_ge + k * 2))) / frac)
+    ans[~mask] = a_ge * log(x_ge) + b_ge * log1p(-x_ge) - log(a_ge) - betaln(a_ge, b_ge) - log(frac)
 
     return ans
 
