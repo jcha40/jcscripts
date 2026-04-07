@@ -21,14 +21,14 @@ def logbetainc(a, b, x, n=20):
         raise ValueError('n must be a positive integer')
     
     if isinstance(a, (int, float)) and isinstance(b, (int, float)) and isinstance(x, (int, float)):
-        if a < b:
+        if a < b * x:
             return log1p(-exp(logbetainc(b, a, 1. - x, n=n)))
         frac = 1.
         for k in range(n, 0, -1):
             frac = 1 - (((a + k - 1) * (a + b + k - 1) * x) / ((a + k * 2 - 2) * (a + k * 2 - 1))) / (1 + ((k * (b - k) * x) / ((a + k * 2 - 1) * (a + k * 2))) / frac)
         return a * log(x) + b * log1p(-x) - log(a) - betaln(a, b) - log(frac)
     
-    mask = a < b
+    mask = a < b * x
     if isinstance(a, (int, float)):
         a_lt = a_ge = a
     else:
