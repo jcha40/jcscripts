@@ -40,7 +40,7 @@ def logbetainc(a, b, x, n=20):
         b_lt = b[mask]
         b_ge = b[~mask]
     
-    ans = empty_like(a + b, dtype=float64)
+    ans = empty_like(a + b + x, dtype=float64)
     if mask.any():
         ans[mask] = log1p(-exp(logbetainc(b_lt, a_lt, 1. - x, n=n)))
     frac = 1.
