@@ -14,7 +14,7 @@ function logbetainc(a::Real, b::Real, x::Real; n::Int64 = 20)::Float64
     for k in n:-1:1
         frac = 1 - (((a + k - 1) * (a + b + k - 1) * x) / ((a + k * 2 - 2) * (a + k * 2 - 1))) / (1 + ((k * (b - k) * x) / ((a + k * 2 - 1) * (a + k * 2))) / frac)
     end
-    return a * log(x) + b * log(1. - x) - log(a) - logbeta(a, b) - log(frac)
+    return a * log(x) + b * log1p(-x) - log(a) - logbeta(a, b) - log(frac)
 end
 
 function logbetah(a::Real, b::Real; n::Int64 = 20, loghalf::Float64 = log(.5))::Float64
