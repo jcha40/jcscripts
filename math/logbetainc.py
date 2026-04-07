@@ -1,4 +1,4 @@
-from numpy import exp, log, log1p, ndarray, empty_like, float64
+from numpy import exp, log, log1p, ndarray, empty_like, float64, zeros_like, bool
 from scipy.special import betaln
 
 def logbetainc(a, b, x, n=20):
@@ -21,14 +21,14 @@ def logbetainc(a, b, x, n=20):
         raise ValueError('n must be a positive integer')
     
     if isinstance(a, (int, float)) and isinstance(b, (int, float)) and isinstance(x, (int, float)):
-        if a * (1. - x) < b * x:
+        if a * (1. - x) < b * x and x >= 1e-16:
             return log1p(-exp(logbetainc(b, a, 1. - x, n=n)))
         frac = 1.
         for k in range(n, 0, -1):
             frac = 1 - (((a + k - 1) * (a + b + k - 1) * x) / ((a + k * 2 - 2) * (a + k * 2 - 1))) / (1 + ((k * (b - k) * x) / ((a + k * 2 - 1) * (a + k * 2))) / frac)
         return a * log(x) + b * log1p(-x) - log(a) - betaln(a, b) - log(frac)
     
-    mask = a * (1. - x) < b * x
+    mask = (a * (1. - x) < b * x if x >= 1e-16 else zeros_like(a + b + x, dtype=bool)) if isinstance(x, (int, float)) else (a * (1. - x) < b * x) & (x >= 1e-16)
     if isinstance(a, (int, float)):
         a_lt = a_ge = a
     else:
