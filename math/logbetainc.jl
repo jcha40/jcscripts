@@ -7,7 +7,7 @@ function logbetainc(a::Real, b::Real, x::Real; n::Int64 = 20, min_x_swap::Float6
     if x < 0. || x > 1. || a <= 0. || b <= 0.
         return NaN
     end
-    if (a * (1. - x) < b * x) && x >= min_x_swap
+    if ((a + 1.) * (1. - x) < (b + 1.) * x) && x >= min_x_swap
         return log1p(-exp(logbetainc(b, a, 1. - x, n=n)))
     end
     frac = 1.
